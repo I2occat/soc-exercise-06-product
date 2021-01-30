@@ -28,6 +28,8 @@ public class Product implements Serializable {
     )
     private UUID id;
 
+    private String customerId;
+
     private String productName;
     private String description;
     private Double price;

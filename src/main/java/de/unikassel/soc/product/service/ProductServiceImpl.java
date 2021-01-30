@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -25,6 +27,10 @@ public class ProductServiceImpl implements ProductService {
         Product product = repo.findById(productId).get();
         return mapper.productToProductDto(product);
     }
+    @Override
+    public List<Product> getProductsByCustomerId(String customerId) {
+        return repo.findProductsByCustomerId(customerId);
+    }
 
     @Override
     public ProductDto saveNewProduct(ProductDto productDto) {
@@ -36,6 +42,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void updateProduct(UUID productId, ProductDto productDto) {
         Product product = repo.findById(productId).get();
+        product.setCustomerId(productDto.getCustomerId());
         product.setProductName(productDto.getProductName());
         product.setDescription(productDto.getDescription());
         product.setPrice(productDto.getPrice());
@@ -53,5 +60,9 @@ public class ProductServiceImpl implements ProductService {
             return mapper.productToProductDto(products.get(0));
         }
         return null;
+    }
+    @Override
+    public Iterable<Product> getAll() {
+        return repo.findAll();
     }
 }

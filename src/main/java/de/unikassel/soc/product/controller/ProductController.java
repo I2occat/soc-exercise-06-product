@@ -1,5 +1,8 @@
 package de.unikassel.soc.product.controller;
 
+import de.unikassel.soc.product.domain.Product;
+import de.unikassel.soc.product.mappers.ProductMapper;
+import de.unikassel.soc.product.mappers.ProductMapperImpl;
 import de.unikassel.soc.product.model.ProductDto;
 import de.unikassel.soc.product.service.ProductService;
 import org.springframework.http.HttpHeaders;
@@ -8,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -16,6 +20,7 @@ import java.util.UUID;
 public class ProductController {
 
     private final ProductService productService;
+    ProductMapper mapper = new ProductMapperImpl();
 
     public ProductController(ProductService productService) {
         this.productService = productService;
@@ -25,6 +30,16 @@ public class ProductController {
     public ResponseEntity<ProductDto> getProduct(@PathVariable("productId") UUID productId){
 
         return new ResponseEntity<>(productService.getProductById(productId), HttpStatus.OK);
+    }
+
+    @GetMapping({"/byCustomer/{customerId}"})
+    public List<Product> getProducts(@PathVariable("customerId") String customerId){
+        return productService.getProductsByCustomerId(customerId);
+    }
+
+    @GetMapping({"/products"})
+    public Iterable<Product> allCustomers() {
+        return productService.getAll();
     }
 
     @PostMapping // POST - create new product
@@ -39,12 +54,30 @@ public class ProductController {
         return new ResponseEntity(headers, HttpStatus.CREATED);
     }
 
-    @PostMapping("/createrandom")
-    public ResponseEntity handlePost(){
+    @PostMapping({"/createrandom"})
+    public ResponseEntity createRandom(){
         ProductDto saved = new ProductDto();
         saved.setProductName("Test");
         saved.setDescription("Test");
         saved.setId(UUID.randomUUID());
+        saved.setCustomerId(UUID.randomUUID().toString());
+        saved.setPrice(1.0);
+        saved.setCurrency("€");
+        productService.saveNewProduct(saved);
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add("Location", "/api/v1/product/" + saved.getId().toString());
+
+        return new ResponseEntity(httpHeaders, HttpStatus.CREATED);
+    }
+
+    @PostMapping({"/createrandom/{customerId}"})
+    public ResponseEntity createRandomForCustomer(@PathVariable("customerId") String customerId) {
+        ProductDto saved = new ProductDto();
+        saved.setProductName("Test");
+        saved.setDescription("Test");
+        saved.setId(UUID.randomUUID());
+        saved.setCustomerId(customerId);
         saved.setPrice(1.0);
         saved.setCurrency("€");
         productService.saveNewProduct(saved);
